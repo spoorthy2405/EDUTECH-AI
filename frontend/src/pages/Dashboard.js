@@ -13,6 +13,7 @@ const Dashboard = () => {
     const fetchCountries = async () => {
       try {
         const response = await axios.get("http://localhost:5000/quiz/countries");
+        
         setCountries(response.data);
       } catch (error) {
         console.error("Error fetching countries", error);

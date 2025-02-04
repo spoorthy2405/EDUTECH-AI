@@ -19,15 +19,8 @@
 
 // const bucketName = process.env.GCS_BUCKET_NAME;
 
-// // Get all countries
-// router.get("/countries", async (req, res) => {
-//   try {
-//     const countries = await Country.find();
-//     res.json(countries);
-//   } catch (error) {
-//     res.status(500).json({ message: error.message });
-//   }
-// });
+// Get all countries
+
 
 // // Get exams for a specific country
 // router.get("/exams/:countryId", async (req, res) => {
@@ -435,7 +428,10 @@ router.get("/generate-test/:examId", async (req, res) => {
       ✅ **Include the following types of questions:**
       1. **Multiple Choice Questions (MCQs):** 10 questions with options A, B, C, D.
       2. **Short Answer Questions:** 5 questions requiring brief answers (1-2 sentences).
-      3. **Long Answer Questions:** 3 questions requiring detailed answers (1-2 paragraphs).
+      3. **Long Answer Questions:**
+         - 1 question involving detailed mathematical calculations (e.g., calculus, algebra, geometry).
+         - 1 question involving graph interpretation or analysis (e.g., plotting graphs, analyzing trends).
+         - 1 general long-answer question requiring detailed explanations.
       ✅ **DO NOT SHOW ANSWERS IN THE TEST PAPER.**
       ✅ **PROVIDE ANSWERS SEPARATELY UNDER "Answer Key" USING THE FOLLOWING FORMAT:**
       **Answer Key:**
@@ -448,8 +444,9 @@ router.get("/generate-test/:examId", async (req, res) => {
       2. Correct answer for Q2
       ...
       **Long Answer Questions:**
-      1. Correct answer for Q1
-      2. Correct answer for Q2
+      1. Step-by-step solution for the mathematical calculation question.
+      2. Detailed analysis and interpretation of the graph.
+      3. Correct answer for the general long-answer question.
       ...
       ✅ **SEPARATE THE TEST PAPER AND ANSWER KEY WITH A DELIMITER '---'.**
       **Exam Title**: ${exam.name} - Sample Question Paper
@@ -479,9 +476,16 @@ router.get("/generate-test/:examId", async (req, res) => {
          [Marks]
       ...
       **Long Answer Questions:**
-      1. [Question 1]
+      1. [Mathematical Calculation Question]
+         Solve the following problem step-by-step:
+         [Problem description]
          [Marks]
-      2. [Question 2]
+      2. [Graph Interpretation Question]
+         Analyze the given graph and answer the following:
+         [Graph description]
+         [Marks]
+      3. [General Long Answer Question]
+         [Question description]
          [Marks]
       ...
       **End of Question Paper**
@@ -496,16 +500,24 @@ router.get("/generate-test/:examId", async (req, res) => {
       2. Correct answer for Q2
       ...
       **Long Answer Questions:**
-      1. Correct answer for Q1
-      2. Correct answer for Q2
+      1. Step-by-step solution for the mathematical calculation question.
+      2. Detailed analysis and interpretation of the graph.
+      3. Correct answer for the general long-answer question.
       ...
     `;
-
     const result = await model.generateContent(prompt);
     const responseText = await result.response.text();
     if (!responseText) return res.status(500).json({ message: "Error generating test." });
 
+    console.log("Gemini API raw response:", responseText); // Log raw response for debugging
+
     const { testContent, answers } = extractAnswers(responseText);
+
+    if (!testContent || !answers) {
+      console.error("Error: Incomplete test or answers generated.");
+      return res.status(500).json({ message: "Error generating test or answers." });
+    }
+
     const answerKeyURL = await storeAnswerInCloud(req.params.examId, answers);
 
     res.json({ testContent, answerKeyURL });
@@ -514,6 +526,18 @@ router.get("/generate-test/:examId", async (req, res) => {
     res.status(500).json({ message: "Error generating test", error: error.message });
   }
 });
+
+
+router.get("/countries", async (req, res) => {
+  try {
+    const countries = await Country.find();
+    res.json(countries);
+    console.log("Countries retrieved successfully.");
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 
 // Evaluate Answers with AI Comparison
 router.post("/evaluate", uploadMiddleware.single("file"), async (req, res) => {
