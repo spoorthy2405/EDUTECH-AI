@@ -538,6 +538,30 @@ router.get("/countries", async (req, res) => {
   }
 });
 
+// Get exams for a specific country
+router.get("/exams/:countryId", async (req, res) => {
+  try {
+    const exams = await Exam.find({ country: req.params.countryId });
+    if (!exams || exams.length === 0) {
+      return res.status(404).json({ message: "No exams found for this country." });
+    }
+    res.json(exams);
+  } catch (error) {
+    console.error("Error fetching exams:", error.message);
+    res.status(500).json({ message: "Failed to load exams. Please try again later." });
+  }
+});
+
+// Get exam options (offline/online) for a specific exam
+router.get("/test-options/:examId", async (req, res) => {
+  try {
+    const exam = await Exam.findById(req.params.examId);
+    if (!exam) return res.status(404).json({ message: "Exam not found" });
+    res.json(exam);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
 
 // Evaluate Answers with AI Comparison
 router.post("/evaluate", uploadMiddleware.single("file"), async (req, res) => {
@@ -648,5 +672,53 @@ router.post("/evaluate", uploadMiddleware.single("file"), async (req, res) => {
     res.status(500).json({ message: "Error evaluating file", error: error.message });
   }
 });
+
+
+router.post("/submit-answers", async (req, res) => {
+  try {
+    const { examId, answers } = req.body;
+
+    // Store user answers in the cloud
+    const bucket = storage.bucket(bucketName);
+    const userAnswerFile = bucket.file(`user-answers/${examId}.txt`);
+    await userAnswerFile.save(JSON.stringify(answers));
+    console.log(`User answers uploaded to ${bucketName}/user-answers/${examId}.txt`);
+
+    // Retrieve stored correct answers
+    const correctAnswers = await retrieveAnswerFromCloud(examId);
+    if (!correctAnswers) {
+      return res.status(500).json({ message: "Stored answers not found." });
+    }
+
+    // Compare answers using Gemini API
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const prompt = `
+      Compare the following two sets of answers and provide a score based on their similarity:
+      Extracted Answers: ${JSON.stringify(answers)}
+      Stored Answers: ${correctAnswers}
+      Instructions:
+      1. Compare each answer line by line.
+      2. Provide a similarity score between 0 and 100.
+      3. Return the score in the following format: Score: [score]%
+    `;
+    const result = await model.generateContent(prompt);
+    const responseText = await result.response.text();
+    const score = extractScore(responseText);
+
+    res.json({ score });
+  } catch (error) {
+    console.error("Error submitting answers:", error.message);
+    res.status(500).json({ message: "Error submitting answers", error: error.message });
+  }
+});
+
+function extractScore(responseText) {
+  const scoreKeyword = "Score:";
+  const scoreIndex = responseText.indexOf(scoreKeyword);
+  if (scoreIndex === -1) return 0;
+  const scoreSubstring = responseText.substring(scoreIndex + scoreKeyword.length).trim();
+  const numericScore = parseInt(scoreSubstring, 10);
+  return isNaN(numericScore) ? 0 : numericScore;
+}
 
 module.exports = router;

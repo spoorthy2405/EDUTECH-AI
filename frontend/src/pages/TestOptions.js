@@ -51,6 +51,7 @@ const TestOptions = () => {
             <h2 style={examTitleStyle}>{exam.name}</h2>
             {exam.description && <p style={examDescriptionStyle}>{exam.description}</p>}
             <div style={cardContainerStyle}>
+              {/* Offline Test Card */}
               {exam.offline && (
                 <div style={cardStyle}>
                   <h3 style={cardTitleStyle}>Offline Test</h3>
@@ -58,14 +59,17 @@ const TestOptions = () => {
                   <div style={progressBarContainer}>
                     <div style={{ ...progressBar, width: "70%" }}></div>
                   </div>
+                  // Inside the offline card
                   <button
                     style={cardButtonStyle}
-                    onClick={() => handleTestNavigation("offline")}
+                    onClick={() => navigate(`/mcq/${examId}`)} // Navigate to MCQPage
                   >
                     Start Offline Test
                   </button>
                 </div>
               )}
+
+              {/* Online Test Card */}
               {exam.online && (
                 <div style={cardStyle}>
                   <h3 style={cardTitleStyle}>Online Test</h3>
@@ -88,10 +92,7 @@ const TestOptions = () => {
         )}
       </main>
       <footer style={footerStyle}>
-        <button
-          style={backButtonStyle}
-          onClick={() => navigate(-1)}
-        >
+        <button style={backButtonStyle} onClick={() => navigate(-1)}>
           &larr; Back
         </button>
       </footer>
