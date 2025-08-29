@@ -35,7 +35,7 @@ const Home = () => (
 
     {/* Features Section */}
     <section style={styles.features}>
-      <h3 style={styles.sectionTitle}>Why Choose QuizGen?</h3>
+      <h3 style={styles.sectionTitle}>Why Choose Edutech-AI?</h3>
       <div style={styles.featureCards}>
         <div style={styles.card}>
           <h4 style={styles.cardTitle}>Customizable Exams</h4>

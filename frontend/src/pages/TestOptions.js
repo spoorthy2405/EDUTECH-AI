@@ -85,6 +85,18 @@ const TestOptions = () => {
                   </button>
                 </div>
               )}
+              
+              {/* YouTube Study Material Card */}
+<div style={{ ...cardStyle, backgroundColor: "#cce5ff", transform: "scale(1.05)" }}>
+  <h3 style={cardTitleStyle}>YouTube Study Material</h3>
+  <p style={cardDetailStyle}>Watch videos to enhance your learning.</p>
+  <div style={progressBarContainer}>
+    <div style={{ ...progressBar, width: "80%", backgroundColor: "#007BFF" }}></div>
+  </div>
+  <button style={cardButtonStyle} onClick={() => navigate(`/youtube-material/${encodeURIComponent(exam.name)}`)}>
+  View Videos
+</button>
+</div>
             </div>
           </>
         ) : (

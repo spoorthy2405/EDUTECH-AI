@@ -31,7 +31,7 @@ const Dashboard = () => {
     <div style={styles.container}>
       {/* Navbar */}
       <header style={styles.navbar}>
-        <div style={styles.logo}>QuizGen</div>
+        <div style={styles.logo}>EDUTEH-AI</div>
         <nav style={styles.navLinks}>
           <Link to="/" style={styles.link}>Home</Link>
           <Link to="/features" style={styles.link}>Features</Link>
@@ -52,7 +52,7 @@ const Dashboard = () => {
       <section style={styles.statsSection}>
         <div style={styles.statItem}>
           <h3>Total Countries</h3>
-          <p>{countries.length || "Loading..."}</p>
+          <p>{40 || "Loading..."}</p>
         </div>
         <div style={styles.statItem}>
           <h3>Fun Fact</h3>

@@ -1,14 +1,21 @@
 const mongoose = require("mongoose");
+const dotenv = require("dotenv");
 const Country = require("./models/Country");
 const Exam = require("./models/Exam");
 
-// Connect to MongoDB
-mongoose.connect("mongodb://localhost:27017/usersDB")
+// Load environment variables
+dotenv.config();
+
+// Connect to MongoDB (Atlas)
+mongoose.connect(process.env.MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
   .then(() => {
-    console.log("MongoDB connected");
+    console.log("✅ MongoDB connected to Atlas");
   })
   .catch((err) => {
-    console.error("MongoDB connection error:", err);
+    console.error("❌ MongoDB connection error:", err);
   });
 
 // Sample country data
@@ -47,13 +54,13 @@ const seedDatabase = async () => {
     // Prepare exam data linked to countries
     const exams = [];
     for (const country of insertedCountries) {
-      const countryExams = examData[country.name]; // Get exams for the current country
+      const countryExams = examData[country.name];
       countryExams.forEach((examName) => {
         exams.push({
           name: examName,
-          country: country._id, // Link exam to the country
-          offline: Math.random() > 0.5, // Randomize offline availability
-          online: Math.random() > 0.5, // Randomize online availability
+          country: country._id,
+          offline: Math.random() > 0.5,
+          online: Math.random() > 0.5,
         });
       });
     }
@@ -61,9 +68,9 @@ const seedDatabase = async () => {
     // Insert all exams into the database
     await Exam.insertMany(exams);
 
-    console.log("Database seeded successfully with multiple exams per country!");
+    console.log("🎯 Database seeded successfully with multiple exams per country!");
   } catch (error) {
-    console.error("Error seeding the database:", error);
+    console.error("❌ Error seeding the database:", error);
   } finally {
     mongoose.connection.close();
   }
